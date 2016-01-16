@@ -1,0 +1,46 @@
+<html>
+<head>
+    <script>
+        function onLoad() {
+            this.controls = [];
+            draw();
+        }
+        function onMove(event) {
+            for (var i = 0; i < this.controls.length; i++) {
+                this.controls[i].checkHoverStatus(event);
+            }
+        }
+        function onPress(event) {
+            for (var i = 0; i < this.controls.length; i++) {
+                this.controls[i].checkPressStatus(event);
+            }
+        }
+        function onRelease(event) {
+            for (var i = 0; i < this.controls.length; i++) {
+                this.controls[i].checkReleaseStatus(event);
+            }
+        }
+
+        function add(control) {
+            this.controls = this.controls.concat([control]);
+        }
+        function draw() {
+            var p = new ControlPoint(100, 100, document.getElementById("myCanvas"));
+            add(p);
+            p.redraw();
+        }
+    </script>
+    <script src="baseclass.js"></script>
+    <script src="script.js"></script>
+</head>
+<body onload="onLoad()">
+<table width="1200">
+    <tr>
+        <td style="border: solid 1px black;">
+            <canvas id="myCanvas" width="1000" height="600" onmousemove="onMove(event)" onmousedown="onPress(event)" onmouseup="onRelease(event)"></canvas>
+        </td>
+        <td></td>
+    </tr>
+</table>
+</body>
+</html>
