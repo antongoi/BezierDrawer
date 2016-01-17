@@ -5,6 +5,7 @@
             this.controls = [];
             this.points = [];
             this.lines = [];
+            this.imageObj = new Image();
             draw();
         }
         function onMove(event) {
@@ -69,6 +70,8 @@
             ctx.clearRect(0, 0, c.width, c.height);
         }
         function globalRepaint() {
+            var ctx = document.getElementById('myCanvas').getContext('2d');
+            ctx.drawImage(this.imageObj, 0, 0);
             var serializedTextBox = document.getElementById("serializedLines");
             var serializedString = "";
             for (var i = 0; i < this.lines.length; i++) {
@@ -85,6 +88,8 @@
 //            }
         }
         function deserializeLinesData() {
+            this.imageObj = new Image();
+            document.getElementById("loadFile").value = "";
             while (this.lines.length > 0) {
                 removeLine();
             }
@@ -102,8 +107,10 @@
                 l.setColor(color);
                 add(l);
                 addLines(l);
-                getViewController().focusToLine(l);
+                getViewController().focusToLine(this.lines[0]);
             }
+            globalClear();
+            globalRepaint();
         }
         function applyCoords() {
 //                this.points[0].setXY(document.getElementById("p1x").value, document.getElementById("p1y").value);
@@ -150,6 +157,11 @@
             var l = createNewLineFromPoints(p1, p2, p3, p4);
             add(l);
             addLines(l);
+            var cBox = document.getElementById("selectLine");
+            cBox.selectedIndex = cBox.childElementCount - 1;
+            getViewController().focusToLine(l);
+            globalClear();
+            globalRepaint();
         }
         function createNewLineFromPoints(p1, p2, p3, p4) {
             add(p1);
@@ -179,27 +191,55 @@
             for (var i = index; i < this.lines.length; i++) {
                 cBox.options.item(i).id = cBox.options.item(i).id - 1;
             }
-            getViewController().focusToLine(this.lines[cBox.selectedIndex]);
+            if (cBox.selectedIndex > -1) {
+                getViewController().focusToLine(this.lines[cBox.selectedIndex]);
+            }
+        }
+        function addImageBg() {
+            var files = document.getElementById("loadFile").files;
+            if (FileReader && files && files.length) {
+                var fr = new FileReader();
+                var img = this.imageObj;
+                fr.onload = function () {
+                    img.src = fr.result;
+                }
+                fr.readAsDataURL(files[0]);
+            }
+        }
+        function resizeCanvas() {
+            var c = document.getElementById("myCanvas");
+            c.width = document.getElementById("resizeW").value;
+            c.height = document.getElementById("resizeH").value;
+            globalClear();
+            globalRepaint();
         }
     </script>
     <script src="baseclass.js"></script>
     <script src="script.js"></script>
 </head>
 <body onload="onLoad()">
-<table>
+<table cellspacing="5">
     <tr>
-        <td style="border: dashed 1px;"><label for="selectLine">Active line: </label>
+        <td style="border: dashed 1px #AAAAAA;"><label for="selectLine">Active line: </label>
             <select id="selectLine" style="width: 200px;" onchange="activeLineChanged()">
             </select>
         </td>
-        <td style="border: dashed 1px;"><label for="lineColor">Line color: </label><input id="lineColor" type="color"
-                                                                                          onchange="changeLineColor()">
+        <td style="border: dashed 1px #AAAAAA;"><label for="lineColor">Line color: </label><input id="lineColor"
+                                                                                                  type="color"
+                                                                                                  onchange="changeLineColor()">
         </td>
-        <td style="border: dashed 1px;"><input type="button" value="AddLine" onclick="addNewLine()"></td>
-        <td style="border: dashed 1px;"><input type="button" value="RemoveLine" onclick="removeLine()"></td>
-        <!--<td style="border: dashed 1px;"><label for="activateLineOnPointClick" style="font-size: 12px;">Activate line
+        <td style="border: dashed 1px #AAAAAA;"><input type="button" value="AddLine" onclick="addNewLine()"></td>
+        <td style="border: dashed 1px #AAAAAA;"><input type="button" value="RemoveLine"
+                                                       onclick="removeLine();globalClear();globalRepaint()"></td>
+        <!--<td style="border: dashed 1px #AAAAAA;"><label for="activateLineOnPointClick" style="font-size: 12px;">Activate line
             when clicking on point:</label>
             <input id="activateLineOnPointClick" style="vertical-align: middle;" type="checkbox"></td>-->
+        <td style="border: dashed 1px #AAAAAA;"><input id="loadFile" type="file" onchange="addImageBg()"></td>
+        <td style="border: dashed 1px #AAAAAA;">
+            <input type="number" id="resizeW" value="1000" style="width: 50px; height: 20px;">
+            <input type="number" id="resizeH" value="600" style="width: 50px; height: 20px;">
+            <input type="button" value="Resize" onclick="resizeCanvas()">
+        </td>
     </tr>
 </table>
 <br>
