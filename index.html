@@ -6,6 +6,8 @@
             this.points = [];
             this.lines = [];
             this.imageObj = new Image();
+            this.savedStates = [];
+            this.currentSavedState = -1;
             draw();
         }
         function onMove(event) {
@@ -14,13 +16,41 @@
             }
         }
         function onPress(event) {
+            saveState();
             for (var i = 0; i < this.points.length; i++) {
                 this.points[i].checkPressStatus(event);
             }
         }
         function onRelease(event) {
+            saveState();
             for (var i = 0; i < this.points.length; i++) {
                 this.points[i].checkReleaseStatus(event);
+            }
+        }
+
+        function saveState() {
+            var serializedData = document.getElementById("serializedLines").value;
+            if (this.savedStates[this.currentSavedState] == serializedData) {
+                return;
+            }
+            if (this.currentSavedState + 1 < this.savedStates.length) {
+                this.savedStates = this.savedStates.slice(0, this.currentSavedState + 1);
+            }
+            this.savedStates = this.savedStates.concat(serializedData);
+            this.currentSavedState++;
+        }
+        function undo() {
+            if (this.currentSavedState > 0) {
+                this.currentSavedState--;
+                document.getElementById("serializedLines").value = this.savedStates[this.currentSavedState];
+                deserializeLinesData();
+            }
+        }
+        function redo() {
+            if (this.currentSavedState + 1 < this.savedStates.length) {
+                this.currentSavedState++;
+                document.getElementById("serializedLines").value = this.savedStates[this.currentSavedState];
+                deserializeLinesData();
             }
         }
 
@@ -100,6 +130,10 @@
                         + "," + lines[i].getP2().getX() + "," + lines[i].getP2().getY() + "\n";
             }
         }
+        function deserializeLinesDataButton() {
+            saveState();
+            deserializeLinesData();
+        }
         function deserializeLinesData() {
             this.imageObj = new Image();
             document.getElementById("loadFile").value = "";
@@ -133,6 +167,7 @@
 //                globalClear();
 //                globalRepaint();
             this.viewController.applyNewCoords();
+            saveState();
         }
 
         function getRandomInt(min, max) {
@@ -157,6 +192,7 @@
         function changeLineColor() {
             getViewController().getActiveLine().setColor(document.getElementById("lineColor").value);
             globalRepaint();
+            saveState();
         }
         function activeLineChanged() {
             var cBox = document.getElementById("selectLine");
@@ -175,6 +211,7 @@
             getViewController().focusToLine(l);
             globalClear();
             globalRepaint();
+            saveState();
         }
         function createNewLineFromPoints(p1, p2, p3, p4) {
             add(p1);
@@ -207,6 +244,7 @@
             if (cBox.selectedIndex > -1) {
                 getViewController().focusToLine(this.lines[cBox.selectedIndex]);
             }
+            saveState();
         }
         function addImageBg() {
             var files = document.getElementById("loadFile").files;
@@ -252,6 +290,10 @@
             <input type="number" id="resizeW" value="1000" style="width: 50px; height: 20px;">
             <input type="number" id="resizeH" value="600" style="width: 50px; height: 20px;">
             <input type="button" value="Resize" onclick="resizeCanvas()">
+        </td>
+        <td style="border: dashed 1px #AAAAAA;">
+            <input type="button" value="<U" onclick="undo()">
+            <input type="button" value="R>" onclick="redo()">
         </td>
     </tr>
 </table>
@@ -325,7 +367,7 @@
     </tr>
 </table>
 <input id="serializedLines" type="text" style="width: 500px;"><input type="button" value="DeSerialize"
-                                                                     onclick="deserializeLinesData()">
+                                                                     onclick="deserializeLinesDataButton()">
 <br>
 
 <p id="lineColorsHelp"></p>
