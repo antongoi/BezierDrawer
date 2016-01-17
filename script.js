@@ -6,13 +6,15 @@
 //ctx.stroke();
 
 var ControlPoint = Class.extend({
-    init: function (x, y, canvas) { //center
+    init: function (x, y, canvas, bindXtext, bindYtext) { //center
         this.x = x;
         this.y = y;
         this.ctx = canvas.getContext("2d");
         this.canvasRect = canvas.getBoundingClientRect();
         this.hovered = false;
         this.inmove = false;
+        this.bindX = bindXtext;
+        this.bindY = bindYtext;
     },
 
     getX: function () {
@@ -23,9 +25,9 @@ var ControlPoint = Class.extend({
         return this.y;
     },
 
-    moveTo: function (x, y) {
-        this.x = x;
-        this.y = y;
+    setXY: function (x, y) {
+        this.x = parseInt(x);
+        this.y = parseInt(y);
     },
 
     setHovered: function (hovered) {
@@ -37,6 +39,8 @@ var ControlPoint = Class.extend({
     },
 
     redraw: function () {
+        this.bindX.value = this.x;
+        this.bindY.value = this.y;
         this.ctx.beginPath();
         this.ctx.arc(this.x, this.y, 5, 0, 2 * Math.PI, false);
         this.ctx.fillStyle = '#2FFF1D';
@@ -50,12 +54,17 @@ var ControlPoint = Class.extend({
         this.ctx.clearRect(this.x - 7, this.y - 7, this.x + 7, this.y + 7);
     },
 
+    highlightPointControls: function (highlight) {
+        this.bindX.parentNode.parentNode.bgColor = highlight ? '#E3E3E3' : '#FFFFFF';
+    },
+
     checkHoverStatus: function (event) {
-        this.clear();
+        //this.clear();
+        globalClear();
         var ex = event.clientX - this.canvasRect.left;
         var ey = event.clientY - this.canvasRect.top;
         if (this.inmove) {
-            this.moveTo(ex, ey);
+            this.setXY(ex, ey);
         }
 
         if ((ex > this.x - 5) && (ex < this.x + 5) && (ey > this.y - 5) && (ey < this.y + 5)) {
@@ -63,7 +72,8 @@ var ControlPoint = Class.extend({
         } else {
             this.setHovered(false)
         }
-        this.redraw();
+        this.highlightPointControls(this.hovered);
+        globalRepaint();
     },
 
     checkPressStatus: function (event) {
@@ -79,5 +89,39 @@ var ControlPoint = Class.extend({
         this.setInmove(false);
         this.redraw();
     }
+});
+
+
+var BezierCurve = Class.extend({
+    init: function (p1, p2, p3, p4, ctx) { //p1, p2 - start & end points, p3, p4 - curving points
+        this.p1 = p1;
+        this.p2 = p2;
+        this.p3 = p3;
+        this.p4 = p4;
+        this.ctx = ctx;
+    },
+
+    redraw: function () {
+        this.drawLine(this.p1, this.p3);
+        this.drawLine(this.p2, this.p4);
+        this.drawBezier(this.p1, this.p2, this.p3, this.p4);
+    },
+
+    drawLine: function (p1, p2) {
+        this.ctx.beginPath();
+        this.ctx.moveTo(p1.getX(), p1.getY());
+        this.ctx.lineTo(p2.getX(), p2.getY());
+        this.ctx.strokeStyle = '#0010B9';
+        this.ctx.stroke();
+    },
+
+    drawBezier: function (p1, p2, p3, p4) {
+        this.ctx.beginPath();
+        this.ctx.moveTo(p1.getX(), p1.getY());
+        this.ctx.bezierCurveTo(p3.getX(), p3.getY(), p4.getX(), p4.getY(), p2.getX(), p2.getY());
+        this.ctx.strokeStyle = '#0010B9';
+        this.ctx.stroke();
+    }
+
 });
 

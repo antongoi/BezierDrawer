@@ -3,31 +3,76 @@
     <script>
         function onLoad() {
             this.controls = [];
+            this.points = [];
+            this.lines = [];
             draw();
         }
         function onMove(event) {
-            for (var i = 0; i < this.controls.length; i++) {
-                this.controls[i].checkHoverStatus(event);
+            for (var i = 0; i < this.points.length; i++) {
+                this.points[i].checkHoverStatus(event);
             }
         }
         function onPress(event) {
-            for (var i = 0; i < this.controls.length; i++) {
-                this.controls[i].checkPressStatus(event);
+            for (var i = 0; i < this.points.length; i++) {
+                this.points[i].checkPressStatus(event);
             }
         }
         function onRelease(event) {
-            for (var i = 0; i < this.controls.length; i++) {
-                this.controls[i].checkReleaseStatus(event);
+            for (var i = 0; i < this.points.length; i++) {
+                this.points[i].checkReleaseStatus(event);
             }
         }
 
         function add(control) {
             this.controls = this.controls.concat([control]);
         }
+        function addPoints(control) {
+            this.points = this.points.concat([control]);
+        }
+        function addLines(control) {
+            this.lines = this.lines.concat([control]);
+        }
         function draw() {
-            var p = new ControlPoint(100, 100, document.getElementById("myCanvas"));
-            add(p);
-            p.redraw();
+            var p1 = new ControlPoint(800, 50, document.getElementById("myCanvas"), document.getElementById("p1x"), document.getElementById("p1y"));
+            add(p1);
+            addPoints(p1);
+            var p2 = new ControlPoint(340, 440, document.getElementById("myCanvas"), document.getElementById("p2x"), document.getElementById("p2y"));
+            add(p2);
+            addPoints(p2);
+            var p3 = new ControlPoint(500, 100, document.getElementById("myCanvas"), document.getElementById("p3x"), document.getElementById("p3y"));
+            add(p3);
+            addPoints(p3);
+            var p4 = new ControlPoint(680, 365, document.getElementById("myCanvas"), document.getElementById("p4x"), document.getElementById("p4y"));
+            add(p4);
+            addPoints(p4);
+
+            var l = new BezierCurve(p1, p2, p3, p4, document.getElementById("myCanvas").getContext("2d"));
+            add(l);
+            addLines(l);
+//            p.redraw();
+            globalRepaint();
+        }
+
+        function globalClear() {
+            var c = document.getElementById("myCanvas");
+            var ctx = c.getContext("2d");
+            ctx.clearRect(0, 0, c.width, c.height);
+        }
+        function globalRepaint() {
+            for (var i = 0; i < this.lines.length; i++) {
+                this.lines[i].redraw();
+            }
+            for (var i = 0; i < this.points.length; i++) {
+                this.points[i].redraw();
+            }
+        }
+        function applyCoords() {
+            this.points[0].setXY(document.getElementById("p1x").value, document.getElementById("p1y").value);
+            this.points[1].setXY(document.getElementById("p2x").value, document.getElementById("p2y").value);
+            this.points[2].setXY(document.getElementById("p3x").value, document.getElementById("p3y").value);
+            this.points[3].setXY(document.getElementById("p4x").value, document.getElementById("p4y").value);
+            globalClear();
+            globalRepaint();
         }
     </script>
     <script src="baseclass.js"></script>
@@ -36,10 +81,49 @@
 <body onload="onLoad()">
 <table width="1200">
     <tr>
-        <td style="border: solid 1px black;">
-            <canvas id="myCanvas" width="1000" height="600" onmousemove="onMove(event)" onmousedown="onPress(event)" onmouseup="onRelease(event)"></canvas>
+        <td style="border: solid 1px black;" width="1000">
+            <canvas id="myCanvas" width="1000" height="600" onmousemove="onMove(event)" onmousedown="onPress(event)"
+                    onmouseup="onRelease(event)" style="cursor: pointer;"></canvas>
         </td>
-        <td></td>
+        <td style="border: dotted 1px black; vertical-align: top;" align="center" width="1000">
+            <table style="border: dotted 1px black;" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td>P1</td>
+                    <td>
+                        X: <input type="number" id="p1x" value="" style="width: 130px; height: 30px; background-color: transparent;"><br>
+                        Y: <input type="number" id="p1y" value="" style="width: 130px; height: 30px; background-color: transparent;">
+                    </td>
+                </tr>
+            </table><br>
+            <table style="border: dotted 1px black;" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td>P2</td>
+                    <td>
+                        X: <input type="number" id="p2x" value="" style="width: 130px; height: 30px; background-color: transparent;"><br>
+                        Y: <input type="number" id="p2y" value="" style="width: 130px; height: 30px; background-color: transparent;">
+                    </td>
+                </tr>
+            </table><br>
+            <table style="border: dotted 1px black;" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td>P3</td>
+                    <td>
+                        X: <input type="number" id="p3x" value="" style="width: 130px; height: 30px; background-color: transparent;"><br>
+                        Y: <input type="number" id="p3y" value="" style="width: 130px; height: 30px; background-color: transparent;">
+                    </td>
+                </tr>
+            </table><br>
+            <table style="border: dotted 1px black;" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td>P4</td>
+                    <td>
+                        X: <input type="number" id="p4x" value="" style="width: 130px; height: 30px; background-color: transparent;"><br>
+                        Y: <input type="number" id="p4y" value="" style="width: 130px; height: 30px; background-color: transparent;">
+                    </td>
+                </tr>
+            </table><br>
+            <input type="button" value="ApplyCoords" style="width: 170px;" onclick="applyCoords()">
+        </td>
     </tr>
 </table>
 </body>
