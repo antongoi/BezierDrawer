@@ -31,26 +31,36 @@
         }
         function addLines(control) {
             this.lines = this.lines.concat([control]);
+            var id = this.lines.indexOf(control);
+            var option = document.createElement("option");
+            option.text = "line_" + id;
+            option.id = id;
+            document.getElementById("selectLine").add(option);
         }
         function draw() {
-            var p1 = new ControlPoint(800, 50, document.getElementById("myCanvas"), document.getElementById("p1x"), document.getElementById("p1y"));
+            var p1 = new ControlPoint(800, 50, document.getElementById("myCanvas"));
             add(p1);
             addPoints(p1);
-            var p2 = new ControlPoint(340, 440, document.getElementById("myCanvas"), document.getElementById("p2x"), document.getElementById("p2y"));
+            var p2 = new ControlPoint(340, 440, document.getElementById("myCanvas"));
             add(p2);
             addPoints(p2);
-            var p3 = new ControlPoint(500, 100, document.getElementById("myCanvas"), document.getElementById("p3x"), document.getElementById("p3y"));
+            var p3 = new ControlPoint(500, 100, document.getElementById("myCanvas"));
             add(p3);
             addPoints(p3);
-            var p4 = new ControlPoint(680, 365, document.getElementById("myCanvas"), document.getElementById("p4x"), document.getElementById("p4y"));
+            var p4 = new ControlPoint(680, 365, document.getElementById("myCanvas"));
             add(p4);
             addPoints(p4);
 
             var l = new BezierCurve(p1, p2, p3, p4, document.getElementById("myCanvas").getContext("2d"));
             add(l);
             addLines(l);
+
+            this.viewController = new ViewController(document.getElementById("p1x"), document.getElementById("p1y"), document.getElementById("p2x"), document.getElementById("p2y"), document.getElementById("p3x"), document.getElementById("p3y"), document.getElementById("p4x"), document.getElementById("p4y"), l);
 //            p.redraw();
             globalRepaint();
+        }
+        function getViewController() {
+            return this.viewController;
         }
 
         function globalClear() {
@@ -59,21 +69,57 @@
             ctx.clearRect(0, 0, c.width, c.height);
         }
         function globalRepaint() {
+            var serializedTextBox = document.getElementById("serializedLines");
+            var serializedString = "";
             for (var i = 0; i < this.lines.length; i++) {
-                this.lines[i].redraw();
+                var line = this.lines[i];
+                line.redraw();
+                serializedString += line.getP1().x + "," + line.getP1().y + "," +
+                        line.getP2().x + "," + line.getP2().y + "," +
+                        line.getP3().x + "," + line.getP3().y + "," +
+                        line.getP4().x + "," + line.getP4().y + "!" + line.color + "|";
             }
-            for (var i = 0; i < this.points.length; i++) {
-                this.points[i].redraw();
+            serializedTextBox.value = serializedString;
+//            for (var i = 0; i < this.points.length; i++) {
+//                this.points[i].redraw();
+//            }
+        }
+        function deserializeLinesData() {
+            while (this.lines.length > 0) {
+                removeLine();
+            }
+            var serializedData = document.getElementById("serializedLines").value;
+            var linesData = serializedData.split("|");
+            for (var i = 0; i < linesData.length - 1; i++) {
+                var lineData = linesData[i];
+                var color = lineData.split("!")[1];
+                var points = lineData.split("!")[0].split(",");
+                var p1 = new ControlPoint(parseInt(points[0]), parseInt(points[1]), document.getElementById("myCanvas"));
+                var p2 = new ControlPoint(parseInt(points[2]), parseInt(points[3]), document.getElementById("myCanvas"));
+                var p3 = new ControlPoint(parseInt(points[4]), parseInt(points[5]), document.getElementById("myCanvas"));
+                var p4 = new ControlPoint(parseInt(points[6]), parseInt(points[7]), document.getElementById("myCanvas"));
+                var l = createNewLineFromPoints(p1, p2, p3, p4);
+                l.setColor(color);
+                add(l);
+                addLines(l);
+                getViewController().focusToLine(l);
             }
         }
         function applyCoords() {
-            this.points[0].setXY(document.getElementById("p1x").value, document.getElementById("p1y").value);
-            this.points[1].setXY(document.getElementById("p2x").value, document.getElementById("p2y").value);
-            this.points[2].setXY(document.getElementById("p3x").value, document.getElementById("p3y").value);
-            this.points[3].setXY(document.getElementById("p4x").value, document.getElementById("p4y").value);
-            globalClear();
-            globalRepaint();
+//                this.points[0].setXY(document.getElementById("p1x").value, document.getElementById("p1y").value);
+//                this.points[1].setXY(document.getElementById("p2x").value, document.getElementById("p2y").value);
+//                this.points[2].setXY(document.getElementById("p3x").value, document.getElementById("p3y").value);
+//                this.points[3].setXY(document.getElementById("p4x").value, document.getElementById("p4y").value);
+//                globalClear();
+//                globalRepaint();
+            this.viewController.applyNewCoords();
         }
+
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+
         function coefficients() {
             var p1x = parseInt(document.getElementById("p1x").value);
             var p1y = parseInt(document.getElementById("p1y").value);
@@ -83,17 +129,80 @@
             var p3y = parseInt(document.getElementById("p3y").value);
             var p4x = parseInt(document.getElementById("p4x").value);
             var p4y = parseInt(document.getElementById("p4y").value);
-            var strCoef = "p3x = p1.x-(p1.x-p2.x)*" + ((p1x - p3x) / (p1x - p2x)) + "<br><br>" +
+            document.getElementById("coefficients").innerHTML = "p3x = p1.x-(p1.x-p2.x)*" + ((p1x - p3x) / (p1x - p2x)) + "<br><br>" +
                     "p3y = p1.y-(p1.y-p2.y)*" + ((p1y - p3y) / (p1y - p2y)) + "<br><br>" +
                     "p4x = p1.x-(p1.x-p2.x)*" + ((p1x - p4x) / (p1x - p2x)) + "<br><br>" +
                     "p4y = p1.y-(p1.y-p2.y)*" + ((p1y - p4y) / (p1y - p2y));
-            document.getElementById("coefficients").innerHTML = strCoef;
+        }
+        function changeLineColor() {
+            getViewController().getActiveLine().setColor(document.getElementById("lineColor").value);
+            globalRepaint();
+        }
+        function activeLineChanged() {
+            var cBox = document.getElementById("selectLine");
+            getViewController().focusToLine(this.lines[cBox.options[cBox.selectedIndex].id]);
+        }
+        function addNewLine() {
+            var p1 = new ControlPoint(getRandomInt(5, 900), getRandomInt(5, 600), document.getElementById("myCanvas"));
+            var p2 = new ControlPoint(getRandomInt(5, 900), getRandomInt(5, 600), document.getElementById("myCanvas"));
+            var p3 = new ControlPoint(getRandomInt(5, 900), getRandomInt(5, 600), document.getElementById("myCanvas"));
+            var p4 = new ControlPoint(getRandomInt(5, 900), getRandomInt(5, 600), document.getElementById("myCanvas"));
+            var l = createNewLineFromPoints(p1, p2, p3, p4);
+            add(l);
+            addLines(l);
+        }
+        function createNewLineFromPoints(p1, p2, p3, p4) {
+            add(p1);
+            addPoints(p1);
+            add(p2);
+            addPoints(p2);
+            add(p3);
+            addPoints(p3);
+            add(p4);
+            addPoints(p4);
+            return new BezierCurve(p1, p2, p3, p4, document.getElementById("myCanvas").getContext("2d"));
+        }
+        function removeLine() {
+            var cBox = document.getElementById("selectLine");
+            var index = cBox.options[cBox.selectedIndex].id;
+            this.points.splice(this.points.indexOf(this.lines[index].getP1()), 1);
+            this.points.splice(this.points.indexOf(this.lines[index].getP2()), 1);
+            this.points.splice(this.points.indexOf(this.lines[index].getP3()), 1);
+            this.points.splice(this.points.indexOf(this.lines[index].getP4()), 1);
+            this.controls.splice(this.points.indexOf(this.lines[index].getP1()), 1);
+            this.controls.splice(this.points.indexOf(this.lines[index].getP2()), 1);
+            this.controls.splice(this.points.indexOf(this.lines[index].getP3()), 1);
+            this.controls.splice(this.points.indexOf(this.lines[index].getP4()), 1);
+            this.controls.splice(this.lines.indexOf(this.lines[index]), 1);
+            this.lines.splice(index, 1);
+            cBox.removeChild(cBox[index]);
+            for (var i = index; i < this.lines.length; i++) {
+                cBox.options.item(i).id = cBox.options.item(i).id - 1;
+            }
+            getViewController().focusToLine(this.lines[cBox.selectedIndex]);
         }
     </script>
     <script src="baseclass.js"></script>
     <script src="script.js"></script>
 </head>
 <body onload="onLoad()">
+<table>
+    <tr>
+        <td style="border: dashed 1px;"><label for="selectLine">Active line: </label>
+            <select id="selectLine" style="width: 200px;" onchange="activeLineChanged()">
+            </select>
+        </td>
+        <td style="border: dashed 1px;"><label for="lineColor">Line color: </label><input id="lineColor" type="color"
+                                                                                          onchange="changeLineColor()">
+        </td>
+        <td style="border: dashed 1px;"><input type="button" value="AddLine" onclick="addNewLine()"></td>
+        <td style="border: dashed 1px;"><input type="button" value="RemoveLine" onclick="removeLine()"></td>
+        <!--<td style="border: dashed 1px;"><label for="activateLineOnPointClick" style="font-size: 12px;">Activate line
+            when clicking on point:</label>
+            <input id="activateLineOnPointClick" style="vertical-align: middle;" type="checkbox"></td>-->
+    </tr>
+</table>
+<br>
 <table width="1200">
     <tr>
         <td style="border: solid 1px black;" width="1000">
@@ -105,10 +214,10 @@
                 <tr>
                     <td>P1</td>
                     <td>
-                        X: <input type="number" id="p1x" value=""
-                                  style="width: 130px; height: 30px; background-color: transparent;"><br>
-                        Y: <input type="number" id="p1y" value=""
-                                  style="width: 130px; height: 30px; background-color: transparent;">
+                        <label for="p1x">X:</label><input type="number" id="p1x" value=""
+                                                          style="width: 130px; height: 30px; background-color: transparent;"><br>
+                        <label for="p1y">Y:</label><input type="number" id="p1y" value=""
+                                                          style="width: 130px; height: 30px; background-color: transparent;">
                     </td>
                 </tr>
             </table>
@@ -117,10 +226,10 @@
                 <tr>
                     <td>P2</td>
                     <td>
-                        X: <input type="number" id="p2x" value=""
-                                  style="width: 130px; height: 30px; background-color: transparent;"><br>
-                        Y: <input type="number" id="p2y" value=""
-                                  style="width: 130px; height: 30px; background-color: transparent;">
+                        <label for="p2x">X:</label><input type="number" id="p2x" value=""
+                                                          style="width: 130px; height: 30px; background-color: transparent;"><br>
+                        <label for="p2y">Y:</label><input type="number" id="p2y" value=""
+                                                          style="width: 130px; height: 30px; background-color: transparent;">
                     </td>
                 </tr>
             </table>
@@ -129,10 +238,10 @@
                 <tr>
                     <td>P3</td>
                     <td>
-                        X: <input type="number" id="p3x" value=""
-                                  style="width: 130px; height: 30px; background-color: transparent;"><br>
-                        Y: <input type="number" id="p3y" value=""
-                                  style="width: 130px; height: 30px; background-color: transparent;">
+                        <label for="p3x">X:</label><input type="number" id="p3x" value=""
+                                                          style="width: 130px; height: 30px; background-color: transparent;"><br>
+                        <label for="p3y">Y:</label><input type="number" id="p3y" value=""
+                                                          style="width: 130px; height: 30px; background-color: transparent;">
                     </td>
                 </tr>
             </table>
@@ -141,10 +250,10 @@
                 <tr>
                     <td>P4</td>
                     <td>
-                        X: <input type="number" id="p4x" value=""
-                                  style="width: 130px; height: 30px; background-color: transparent;"><br>
-                        Y: <input type="number" id="p4y" value=""
-                                  style="width: 130px; height: 30px; background-color: transparent;">
+                        <label for="p4x">X:</label><input type="number" id="p4x" value=""
+                                                          style="width: 130px; height: 30px; background-color: transparent;"><br>
+                        <label for="p4y">Y:</label><input type="number" id="p4y" value=""
+                                                          style="width: 130px; height: 30px; background-color: transparent;">
                     </td>
                 </tr>
             </table>
@@ -162,5 +271,7 @@
         </td>
     </tr>
 </table>
+<input id="serializedLines" type="text" style="width: 500px;"><input type="button" value="DeSerialize"
+                                                                     onclick="deserializeLinesData()">
 </body>
 </html>

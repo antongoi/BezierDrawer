@@ -6,15 +6,13 @@
 //ctx.stroke();
 
 var ControlPoint = Class.extend({
-    init: function (x, y, canvas, bindXtext, bindYtext) { //center
+    init: function (x, y, canvas) { //center
         this.x = x;
         this.y = y;
         this.ctx = canvas.getContext("2d");
         this.canvasRect = canvas.getBoundingClientRect();
         this.hovered = false;
         this.inmove = false;
-        this.bindX = bindXtext;
-        this.bindY = bindYtext;
     },
 
     getX: function () {
@@ -39,8 +37,8 @@ var ControlPoint = Class.extend({
     },
 
     redraw: function () {
-        this.bindX.value = this.x;
-        this.bindY.value = this.y;
+        //this.bindX.value = this.x;
+        //this.bindY.value = this.y;
         this.ctx.beginPath();
         this.ctx.arc(this.x, this.y, 5, 0, 2 * Math.PI, false);
         this.ctx.fillStyle = '#2FFF1D';
@@ -52,10 +50,6 @@ var ControlPoint = Class.extend({
 
     clear: function () {
         this.ctx.clearRect(this.x - 7, this.y - 7, this.x + 7, this.y + 7);
-    },
-
-    highlightPointControls: function (highlight) {
-        this.bindX.parentNode.parentNode.bgColor = highlight ? '#E3E3E3' : '#FFFFFF';
     },
 
     checkHoverStatus: function (event) {
@@ -72,7 +66,6 @@ var ControlPoint = Class.extend({
         } else {
             this.setHovered(false)
         }
-        this.highlightPointControls(this.hovered);
         globalRepaint();
     },
 
@@ -99,19 +92,45 @@ var BezierCurve = Class.extend({
         this.p3 = p3;
         this.p4 = p4;
         this.ctx = ctx;
+        this.color = '#0010B9';
+    },
+
+    getP1: function () {
+        return this.p1;
+    },
+
+    getP2: function () {
+        return this.p2;
+    },
+
+    getP3: function () {
+        return this.p3;
+    },
+
+    getP4: function () {
+        return this.p4;
+    },
+
+    setColor: function (color) {
+        this.color = color;
     },
 
     redraw: function () {
+        getViewController().updateView();
         this.drawLine(this.p1, this.p3);
         this.drawLine(this.p2, this.p4);
         this.drawBezier(this.p1, this.p2, this.p3, this.p4);
+        this.p1.redraw();
+        this.p2.redraw();
+        this.p3.redraw();
+        this.p4.redraw();
     },
 
     drawLine: function (p1, p2) {
         this.ctx.beginPath();
         this.ctx.moveTo(p1.getX(), p1.getY());
         this.ctx.lineTo(p2.getX(), p2.getY());
-        this.ctx.strokeStyle = '#0010B9';
+        this.ctx.strokeStyle = this.color;
         this.ctx.stroke();
     },
 
@@ -119,9 +138,64 @@ var BezierCurve = Class.extend({
         this.ctx.beginPath();
         this.ctx.moveTo(p1.getX(), p1.getY());
         this.ctx.bezierCurveTo(p3.getX(), p3.getY(), p4.getX(), p4.getY(), p2.getX(), p2.getY());
-        this.ctx.strokeStyle = '#0010B9';
+        this.ctx.strokeStyle = this.color;
         this.ctx.stroke();
     }
 
 });
 
+
+var ViewController = Class.extend({
+    //pNx, pNy - bindings to view coordinates fields,
+    // line - link to active bezier
+    init: function (p1x, p1y, p2x, p2y, p3x, p3y, p4x, p4y, line) {
+        this.p1x = p1x;
+        this.p1y = p1y;
+        this.p2x = p2x;
+        this.p2y = p2y;
+        this.p3x = p3x;
+        this.p3y = p3y;
+        this.p4x = p4x;
+        this.p4y = p4y;
+        this.line = line;
+    },
+
+    focusToLine: function (line) {
+        this.line = line;
+        this.updateView();
+    },
+
+    getActiveLine: function () {
+        return this.line;
+    },
+
+    updateView: function () {
+        this.p1x.value = this.line.getP1().getX();
+        this.p2x.value = this.line.getP2().getX();
+        this.p3x.value = this.line.getP3().getX();
+        this.p4x.value = this.line.getP4().getX();
+        this.p1y.value = this.line.getP1().getY();
+        this.p2y.value = this.line.getP2().getY();
+        this.p3y.value = this.line.getP3().getY();
+        this.p4y.value = this.line.getP4().getY();
+        this.highlightPointControls(this.p1x, this.line.getP1().hovered);
+        this.highlightPointControls(this.p2x, this.line.getP2().hovered);
+        this.highlightPointControls(this.p3x, this.line.getP3().hovered);
+        this.highlightPointControls(this.p4x, this.line.getP4().hovered);
+        document.getElementById("lineColor").value = this.line.color;
+    },
+
+    highlightPointControls: function (pNx, highlight) {
+        pNx.parentNode.parentNode.bgColor = highlight ? '#E3E3E3' : '#FFFFFF';
+    },
+
+    applyNewCoords: function () {
+        this.line.getP1().setXY(this.p1x.value, this.p1y.value);
+        this.line.getP2().setXY(this.p2x.value, this.p2y.value);
+        this.line.getP3().setXY(this.p3x.value, this.p3y.value);
+        this.line.getP4().setXY(this.p4x.value, this.p4y.value);
+        globalClear();
+        globalRepaint();
+    }
+
+});
