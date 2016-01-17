@@ -74,6 +74,7 @@
             ctx.drawImage(this.imageObj, 0, 0);
             var serializedTextBox = document.getElementById("serializedLines");
             var serializedString = "";
+            document.getElementById("lineColorsHelp").innerHTML = "";
             for (var i = 0; i < this.lines.length; i++) {
                 var line = this.lines[i];
                 line.redraw();
@@ -81,6 +82,7 @@
                         line.getP2().x + "," + line.getP2().y + "," +
                         line.getP3().x + "," + line.getP3().y + "," +
                         line.getP4().x + "," + line.getP4().y + "!" + line.color + "|";
+                document.getElementById("lineColorsHelp").innerHTML += "<b style=\"color:" + line.color + ";\">LINE_" + i + "<" + "/b>, ";
             }
             updateTextArea(this.lines);
             serializedTextBox.value = serializedString;
@@ -324,6 +326,9 @@
 </table>
 <input id="serializedLines" type="text" style="width: 500px;"><input type="button" value="DeSerialize"
                                                                      onclick="deserializeLinesData()">
+<br>
+
+<p id="lineColorsHelp"></p>
 <br><br>
 <textarea id="textArea" rows="15" cols="100"></textarea>
 </body>
