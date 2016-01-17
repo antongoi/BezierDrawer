@@ -28,6 +28,10 @@ var ControlPoint = Class.extend({
         this.y = parseInt(y);
     },
 
+    setFirstPoint: function (isFirst) {
+        this.first = isFirst;
+    },
+
     setHovered: function (hovered) {
         return this.hovered = hovered;
     },
@@ -46,6 +50,13 @@ var ControlPoint = Class.extend({
         this.ctx.lineWidth = 2;
         this.ctx.strokeStyle = this.hovered ? this.inmove ? '#1A8A13' : '#2FFF1D' : '#2CC21C';
         this.ctx.stroke();
+        if(this.first){
+            this.ctx.beginPath();
+            this.ctx.arc(this.x, this.y, 1, 0, 2 * Math.PI, false);
+            this.ctx.lineWidth = 2;
+            this.ctx.strokeStyle = '#00085D';
+            this.ctx.stroke();
+        }
     },
 
     clear: function () {
@@ -88,6 +99,7 @@ var ControlPoint = Class.extend({
 var BezierCurve = Class.extend({
     init: function (p1, p2, p3, p4, ctx) { //p1, p2 - start & end points, p3, p4 - curving points
         this.p1 = p1;
+        this.p1.setFirstPoint(true);
         this.p2 = p2;
         this.p3 = p3;
         this.p4 = p4;

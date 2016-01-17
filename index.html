@@ -82,10 +82,21 @@
                         line.getP3().x + "," + line.getP3().y + "," +
                         line.getP4().x + "," + line.getP4().y + "!" + line.color + "|";
             }
+            updateTextArea(this.lines);
             serializedTextBox.value = serializedString;
 //            for (var i = 0; i < this.points.length; i++) {
 //                this.points[i].redraw();
 //            }
+        }
+        function updateTextArea(lines) {
+            var txtArea = document.getElementById("textArea");
+            txtArea.value = "M p1.x p1.y C p3.x p3.y p4.x p4.y p2.x p2.y\n\n";
+            for (var i = 0; i < lines.length; i++) {
+                txtArea.value += "line_" + (i) + ":M" + lines[i].getP1().getX() + "," + lines[i].getP1().getY()
+                        + "C" + lines[i].getP3().getX() + "," + lines[i].getP3().getY()
+                        + "," + lines[i].getP4().getX() + "," + lines[i].getP4().getY()
+                        + "," + lines[i].getP2().getX() + "," + lines[i].getP2().getY() + "\n";
+            }
         }
         function deserializeLinesData() {
             this.imageObj = new Image();
@@ -313,5 +324,7 @@
 </table>
 <input id="serializedLines" type="text" style="width: 500px;"><input type="button" value="DeSerialize"
                                                                      onclick="deserializeLinesData()">
+<br><br>
+<textarea id="textArea" rows="15" cols="100"></textarea>
 </body>
 </html>
