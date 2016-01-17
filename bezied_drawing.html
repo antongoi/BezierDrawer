@@ -74,6 +74,21 @@
             globalClear();
             globalRepaint();
         }
+        function coefficients() {
+            var p1x = parseInt(document.getElementById("p1x").value);
+            var p1y = parseInt(document.getElementById("p1y").value);
+            var p2x = parseInt(document.getElementById("p2x").value);
+            var p2y = parseInt(document.getElementById("p2y").value);
+            var p3x = parseInt(document.getElementById("p3x").value);
+            var p3y = parseInt(document.getElementById("p3y").value);
+            var p4x = parseInt(document.getElementById("p4x").value);
+            var p4y = parseInt(document.getElementById("p4y").value);
+            var strCoef = "p3x = p1.x-(p1.x-p2.x)*" + ((p1x - p3x) / (p1x - p2x)) + "<br><br>" +
+                    "p3y = p1.y-(p1.y-p2.y)*" + ((p1y - p3y) / (p1y - p2y)) + "<br><br>" +
+                    "p4x = p1.x-(p1.x-p2.x)*" + ((p1x - p4x) / (p1x - p2x)) + "<br><br>" +
+                    "p4y = p1.y-(p1.y-p2.y)*" + ((p1y - p4y) / (p1y - p2y));
+            document.getElementById("coefficients").innerHTML = strCoef;
+        }
     </script>
     <script src="baseclass.js"></script>
     <script src="script.js"></script>
@@ -90,39 +105,60 @@
                 <tr>
                     <td>P1</td>
                     <td>
-                        X: <input type="number" id="p1x" value="" style="width: 130px; height: 30px; background-color: transparent;"><br>
-                        Y: <input type="number" id="p1y" value="" style="width: 130px; height: 30px; background-color: transparent;">
+                        X: <input type="number" id="p1x" value=""
+                                  style="width: 130px; height: 30px; background-color: transparent;"><br>
+                        Y: <input type="number" id="p1y" value=""
+                                  style="width: 130px; height: 30px; background-color: transparent;">
                     </td>
                 </tr>
-            </table><br>
+            </table>
+            <br>
             <table style="border: dotted 1px black;" cellpadding="0" cellspacing="0">
                 <tr>
                     <td>P2</td>
                     <td>
-                        X: <input type="number" id="p2x" value="" style="width: 130px; height: 30px; background-color: transparent;"><br>
-                        Y: <input type="number" id="p2y" value="" style="width: 130px; height: 30px; background-color: transparent;">
+                        X: <input type="number" id="p2x" value=""
+                                  style="width: 130px; height: 30px; background-color: transparent;"><br>
+                        Y: <input type="number" id="p2y" value=""
+                                  style="width: 130px; height: 30px; background-color: transparent;">
                     </td>
                 </tr>
-            </table><br>
+            </table>
+            <br>
             <table style="border: dotted 1px black;" cellpadding="0" cellspacing="0">
                 <tr>
                     <td>P3</td>
                     <td>
-                        X: <input type="number" id="p3x" value="" style="width: 130px; height: 30px; background-color: transparent;"><br>
-                        Y: <input type="number" id="p3y" value="" style="width: 130px; height: 30px; background-color: transparent;">
+                        X: <input type="number" id="p3x" value=""
+                                  style="width: 130px; height: 30px; background-color: transparent;"><br>
+                        Y: <input type="number" id="p3y" value=""
+                                  style="width: 130px; height: 30px; background-color: transparent;">
                     </td>
                 </tr>
-            </table><br>
+            </table>
+            <br>
             <table style="border: dotted 1px black;" cellpadding="0" cellspacing="0">
                 <tr>
                     <td>P4</td>
                     <td>
-                        X: <input type="number" id="p4x" value="" style="width: 130px; height: 30px; background-color: transparent;"><br>
-                        Y: <input type="number" id="p4y" value="" style="width: 130px; height: 30px; background-color: transparent;">
+                        X: <input type="number" id="p4x" value=""
+                                  style="width: 130px; height: 30px; background-color: transparent;"><br>
+                        Y: <input type="number" id="p4y" value=""
+                                  style="width: 130px; height: 30px; background-color: transparent;">
                     </td>
                 </tr>
-            </table><br>
-            <input type="button" value="ApplyCoords" style="width: 170px;" onclick="applyCoords()">
+            </table>
+            <br>
+            <input type="button" value="ApplyCoords" style="width: 170px;" onclick="applyCoords()"><br>
+            <br>
+            <br>
+            <br>
+            <input type="button" value="Coefficients" style="width: 170px;" onclick="coefficients()"><br>
+            <table style="border: dotted 1px black;" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td><p style="font-size: 12px;" id="coefficients"></p></td>
+                </tr>
+            </table>
         </td>
     </tr>
 </table>
