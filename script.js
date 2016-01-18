@@ -28,6 +28,10 @@ var ControlPoint = Class.extend({
         this.y = parseInt(y);
     },
 
+    setOrigin: function (isOrigin) {
+        this.isOrigin = isOrigin;
+    },
+
     setFirstPoint: function (isFirst) {
         this.first = isFirst;
     },
@@ -45,12 +49,12 @@ var ControlPoint = Class.extend({
         //this.bindY.value = this.y;
         this.ctx.beginPath();
         this.ctx.arc(this.x, this.y, 5, 0, 2 * Math.PI, false);
-        this.ctx.fillStyle = '#2FFF1D';
+        this.ctx.fillStyle = this.isOrigin ? '#003EE9' : '#2FFF1D';
         this.ctx.fill();
         this.ctx.lineWidth = 2;
         this.ctx.strokeStyle = this.hovered ? this.inmove ? '#1A8A13' : '#2FFF1D' : '#2CC21C';
         this.ctx.stroke();
-        if(this.first){
+        if (this.first) {
             this.ctx.beginPath();
             this.ctx.arc(this.x, this.y, 1, 0, 2 * Math.PI, false);
             this.ctx.lineWidth = 2;
@@ -160,7 +164,7 @@ var BezierCurve = Class.extend({
 var ViewController = Class.extend({
     //pNx, pNy - bindings to view coordinates fields,
     // line - link to active bezier
-    init: function (p1x, p1y, p2x, p2y, p3x, p3y, p4x, p4y, line) {
+    init: function (p1x, p1y, p2x, p2y, p3x, p3y, p4x, p4y, line, originPoint, opBindingX, opBindingY, originActivity) {
         this.p1x = p1x;
         this.p1y = p1y;
         this.p2x = p2x;
@@ -170,6 +174,10 @@ var ViewController = Class.extend({
         this.p4x = p4x;
         this.p4y = p4y;
         this.line = line;
+        this.originPoint = originPoint;
+        this.opBindingX = opBindingX;
+        this.opBindingY = opBindingY;
+        this.originActivity = originActivity;
     },
 
     focusToLine: function (line) {
@@ -182,14 +190,18 @@ var ViewController = Class.extend({
     },
 
     updateView: function () {
-        this.p1x.value = this.line.getP1().getX();
-        this.p2x.value = this.line.getP2().getX();
-        this.p3x.value = this.line.getP3().getX();
-        this.p4x.value = this.line.getP4().getX();
-        this.p1y.value = this.line.getP1().getY();
-        this.p2y.value = this.line.getP2().getY();
-        this.p3y.value = this.line.getP3().getY();
-        this.p4y.value = this.line.getP4().getY();
+        var dx = this.originActivity.checked ? this.originPoint.getX() : 0;
+        var dy = this.originActivity.checked ? this.originPoint.getY() : 0;
+        this.p1x.value = this.line.getP1().getX() - dx;
+        this.p2x.value = this.line.getP2().getX() - dx;
+        this.p3x.value = this.line.getP3().getX() - dx;
+        this.p4x.value = this.line.getP4().getX() - dx;
+        this.p1y.value = this.line.getP1().getY() - dy;
+        this.p2y.value = this.line.getP2().getY() - dy;
+        this.p3y.value = this.line.getP3().getY() - dy;
+        this.p4y.value = this.line.getP4().getY() - dy;
+        this.opBindingX.value = this.originPoint.getX();
+        this.opBindingY.value = this.originPoint.getY();
         this.highlightPointControls(this.p1x, this.line.getP1().hovered);
         this.highlightPointControls(this.p2x, this.line.getP2().hovered);
         this.highlightPointControls(this.p3x, this.line.getP3().hovered);
@@ -202,10 +214,13 @@ var ViewController = Class.extend({
     },
 
     applyNewCoords: function () {
-        this.line.getP1().setXY(this.p1x.value, this.p1y.value);
-        this.line.getP2().setXY(this.p2x.value, this.p2y.value);
-        this.line.getP3().setXY(this.p3x.value, this.p3y.value);
-        this.line.getP4().setXY(this.p4x.value, this.p4y.value);
+        var dx = this.originActivity.checked ? this.originPoint.getX() : 0;
+        var dy = this.originActivity.checked ? this.originPoint.getY() : 0;
+        this.line.getP1().setXY(parseInt(this.p1x.value) + dx, parseInt(this.p1y.value) + dy);
+        this.line.getP2().setXY(parseInt(this.p2x.value) + dx, parseInt(this.p2y.value) + dy);
+        this.line.getP3().setXY(parseInt(this.p3x.value) + dx, parseInt(this.p3y.value) + dy);
+        this.line.getP4().setXY(parseInt(this.p4x.value) + dx, parseInt(this.p4y.value) + dy);
+        this.originPoint.setXY(parseInt(this.opBindingX.value), parseInt(this.opBindingY.value));
         globalClear();
         globalRepaint();
     }

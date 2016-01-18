@@ -86,8 +86,16 @@
             add(l);
             addLines(l);
 
-            this.viewController = new ViewController(document.getElementById("p1x"), document.getElementById("p1y"), document.getElementById("p2x"), document.getElementById("p2y"), document.getElementById("p3x"), document.getElementById("p3y"), document.getElementById("p4x"), document.getElementById("p4y"), l);
-//            p.redraw();
+            var op = new ControlPoint(0, 0, document.getElementById("myCanvas"));
+            op.setOrigin(true);
+            add(op);
+            addPoints(op);
+
+            this.viewController = new ViewController(document.getElementById("p1x"), document.getElementById("p1y"),
+                    document.getElementById("p2x"), document.getElementById("p2y"),
+                    document.getElementById("p3x"), document.getElementById("p3y"),
+                    document.getElementById("p4x"), document.getElementById("p4y"), l,
+                    op, document.getElementById("originX"), document.getElementById("originY"), document.getElementById("originActive"));
             globalRepaint();
         }
         function getViewController() {
@@ -114,6 +122,7 @@
                         line.getP4().x + "," + line.getP4().y + "!" + line.color + "|";
                 document.getElementById("lineColorsHelp").innerHTML += "<b style=\"color:" + line.color + ";\">LINE_" + i + "<" + "/b>, ";
             }
+            getViewController().originPoint.redraw();
             updateTextArea(this.lines);
             serializedTextBox.value = serializedString;
 //            for (var i = 0; i < this.points.length; i++) {
@@ -123,11 +132,13 @@
         function updateTextArea(lines) {
             var txtArea = document.getElementById("textArea");
             txtArea.value = "M p1.x p1.y C p3.x p3.y p4.x p4.y p2.x p2.y\n\n";
+            var dx = getViewController().originActivity.checked ? getViewController().originPoint.getX() : 0;
+            var dy = getViewController().originActivity.checked ? getViewController().originPoint.getY() : 0;
             for (var i = 0; i < lines.length; i++) {
-                txtArea.value += "line_" + (i) + ":M" + lines[i].getP1().getX() + "," + lines[i].getP1().getY()
-                        + "C" + lines[i].getP3().getX() + "," + lines[i].getP3().getY()
-                        + "," + lines[i].getP4().getX() + "," + lines[i].getP4().getY()
-                        + "," + lines[i].getP2().getX() + "," + lines[i].getP2().getY() + "\n";
+                txtArea.value += "line_" + (i) + ":M" + (lines[i].getP1().getX() - dx) + "," + (lines[i].getP1().getY() - dy)
+                        + "C" + (lines[i].getP3().getX() - dx) + "," + (lines[i].getP3().getY() - dy)
+                        + "," + (lines[i].getP4().getX() - dx) + "," + (lines[i].getP4().getY() - dy)
+                        + "," + (lines[i].getP2().getX() - dx) + "," + (lines[i].getP2().getY() - dy) + "\n";
             }
         }
         function deserializeLinesDataButton() {
@@ -184,10 +195,23 @@
             var p3y = parseInt(document.getElementById("p3y").value);
             var p4x = parseInt(document.getElementById("p4x").value);
             var p4y = parseInt(document.getElementById("p4y").value);
+            var dx = getViewController().originActivity.checked ? getViewController().originPoint.getX() : 0;
+            var dy = getViewController().originActivity.checked ? getViewController().originPoint.getY() : 0;
+
             document.getElementById("coefficients").innerHTML = "p3x = p1.x-(p1.x-p2.x)*" + ((p1x - p3x) / (p1x - p2x)) + "<br><br>" +
                     "p3y = p1.y-(p1.y-p2.y)*" + ((p1y - p3y) / (p1y - p2y)) + "<br><br>" +
                     "p4x = p1.x-(p1.x-p2.x)*" + ((p1x - p4x) / (p1x - p2x)) + "<br><br>" +
                     "p4y = p1.y-(p1.y-p2.y)*" + ((p1y - p4y) / (p1y - p2y));
+
+            document.getElementById("coefficients").innerHTML += "\<br\>============\<br\>p3x = p1.x*" + ((p3x - dx) / (p1x - dx)) + "<br><br>" +
+                    "p3y = p1.y*" + ((p3y - dy) / (p1y - dy)) + "<br><br>" +
+                    "p4x = p1.x*" + ((p4x - dx) / (p1x - dx)) + "<br><br>" +
+                    "p4y = p1.y*" + ((p4y - dy) / (p1y - dy));
+
+            document.getElementById("coefficients").innerHTML += "\<br\>============\<br\>p3x = p2.x*" + ((p3x - dx) / (p2x - dx)) + "<br><br>" +
+                    "p3y = p2.y*" + ((p3y - dy) / (p2y - dy)) + "<br><br>" +
+                    "p4x = p2.x*" + ((p4x - dx) / (p2x - dx)) + "<br><br>" +
+                    "p4y = p2.y*" + ((p4y - dy) / (p2y - dy));
         }
         function changeLineColor() {
             getViewController().getActiveLine().setColor(document.getElementById("lineColor").value);
@@ -352,23 +376,26 @@
                     </td>
                 </tr>
             </table>
+            <br><br>
+            Origin point:<br>
+            <label for="originX">X:</label><input type="number" id="originX" value="0" style="width: 70px; height: 20px;"><br>
+            <label for="originY">Y:</label><input type="number" id="originY" value="0" style="width: 70px; height: 20px;"><br>
+            <label for="originActive">Active:</label><input type="checkbox" id="originActive" onchange="getViewController().updateView()">
+            <br><br>
             <br>
             <input type="button" value="ApplyCoords" style="width: 170px;" onclick="applyCoords()"><br>
             <br>
             <br>
             <br>
             <input type="button" value="Coefficients" style="width: 170px;" onclick="coefficients()"><br>
-            <table style="border: dotted 1px black;" cellpadding="0" cellspacing="0">
-                <tr>
-                    <td><p style="font-size: 12px;" id="coefficients"></p></td>
-                </tr>
-            </table>
+        </td>
+        <td>
+            <p style="font-size: 12px;" id="coefficients"></p>
         </td>
     </tr>
 </table>
 <input id="serializedLines" type="text" style="width: 500px;"><input type="button" value="DeSerialize"
                                                                      onclick="deserializeLinesDataButton()">
-<br>
 
 <p id="lineColorsHelp"></p>
 <br><br>
