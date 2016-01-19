@@ -146,6 +146,7 @@
             deserializeLinesData();
         }
         function deserializeLinesData() {
+            getViewController().originPoint.setXY(0,0);
             this.imageObj = new Image();
             document.getElementById("loadFile").value = "";
             while (this.lines.length > 0) {
