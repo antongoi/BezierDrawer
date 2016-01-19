@@ -153,6 +153,10 @@
             }
         }
         function deserializeLinesDataButton() {
+            document.body.scrollTop = 0;
+            document.body.scrollLeft = 0;
+            document.documentElement.scrollTop = 0;
+            document.documentElement.scrollLeft = 0;
             saveState();
             deserializeLinesData();
         }
