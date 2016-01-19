@@ -28,8 +28,8 @@ var ControlPoint = Class.extend({
         this.y = parseInt(y);
     },
 
-    setOrigin: function (isOrigin) {
-        this.isOrigin = isOrigin;
+    setColor: function (color) {
+        this.color = color;
     },
 
     setFirstPoint: function (isFirst) {
@@ -49,7 +49,7 @@ var ControlPoint = Class.extend({
         //this.bindY.value = this.y;
         this.ctx.beginPath();
         this.ctx.arc(this.x, this.y, 5, 0, 2 * Math.PI, false);
-        this.ctx.fillStyle = this.isOrigin ? '#003EE9' : '#2FFF1D';
+        this.ctx.fillStyle = (this.color == null) ? '#2FFF1D' : this.color;
         this.ctx.fill();
         this.ctx.lineWidth = 2;
         this.ctx.strokeStyle = this.hovered ? this.inmove ? '#1A8A13' : '#2FFF1D' : '#2CC21C';
@@ -164,7 +164,7 @@ var BezierCurve = Class.extend({
 var ViewController = Class.extend({
     //pNx, pNy - bindings to view coordinates fields,
     // line - link to active bezier
-    init: function (p1x, p1y, p2x, p2y, p3x, p3y, p4x, p4y, line, originPoint, opBindingX, opBindingY, originActivity) {
+    init: function (p1x, p1y, p2x, p2y, p3x, p3y, p4x, p4y, line, originPoint, opBindingX, opBindingY, originActivity, anchorPoint, anchorX, anchorY) {
         this.p1x = p1x;
         this.p1y = p1y;
         this.p2x = p2x;
@@ -174,6 +174,9 @@ var ViewController = Class.extend({
         this.p4x = p4x;
         this.p4y = p4y;
         this.line = line;
+        this.anchorPoint = anchorPoint;
+        this.anchorX = anchorX;
+        this.anchorY = anchorY;
         this.originPoint = originPoint;
         this.opBindingX = opBindingX;
         this.opBindingY = opBindingY;
@@ -200,6 +203,8 @@ var ViewController = Class.extend({
         this.p2y.value = this.line.getP2().getY() - dy;
         this.p3y.value = this.line.getP3().getY() - dy;
         this.p4y.value = this.line.getP4().getY() - dy;
+        this.anchorX.value = this.anchorPoint.getX() - dx;
+        this.anchorY.value = this.anchorPoint.getY() - dy;
         this.opBindingX.value = this.originPoint.getX();
         this.opBindingY.value = this.originPoint.getY();
         this.highlightPointControls(this.p1x, this.line.getP1().hovered);
@@ -220,6 +225,7 @@ var ViewController = Class.extend({
         this.line.getP2().setXY(parseInt(this.p2x.value) + dx, parseInt(this.p2y.value) + dy);
         this.line.getP3().setXY(parseInt(this.p3x.value) + dx, parseInt(this.p3y.value) + dy);
         this.line.getP4().setXY(parseInt(this.p4x.value) + dx, parseInt(this.p4y.value) + dy);
+        this.anchorPoint.setXY(parseInt(this.anchorX.value) + dx, parseInt(this.anchorY.value) + dy);
         this.originPoint.setXY(parseInt(this.opBindingX.value), parseInt(this.opBindingY.value));
         globalClear();
         globalRepaint();

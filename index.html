@@ -87,15 +87,21 @@
             addLines(l);
 
             var op = new ControlPoint(0, 0, document.getElementById("myCanvas"));
-            op.setOrigin(true);
+            op.setColor('#003EE9');
             add(op);
             addPoints(op);
+
+            var ap = new ControlPoint(10, 1, document.getElementById("myCanvas"));
+            ap.setColor('#78000D');
+            add(ap);
+            addPoints(ap);
 
             this.viewController = new ViewController(document.getElementById("p1x"), document.getElementById("p1y"),
                     document.getElementById("p2x"), document.getElementById("p2y"),
                     document.getElementById("p3x"), document.getElementById("p3y"),
                     document.getElementById("p4x"), document.getElementById("p4y"), l,
-                    op, document.getElementById("originX"), document.getElementById("originY"), document.getElementById("originActive"));
+                    op, document.getElementById("originX"), document.getElementById("originY"), document.getElementById("originActive"),
+                    ap, document.getElementById("anchorX"), document.getElementById("anchorY"));
             globalRepaint();
         }
         function getViewController() {
@@ -123,8 +129,11 @@
                 document.getElementById("lineColorsHelp").innerHTML += "<b style=\"color:" + line.color + ";\">LINE_" + i + "<" + "/b>, ";
             }
             getViewController().originPoint.redraw();
+            getViewController().anchorPoint.redraw();
             updateTextArea(this.lines);
-            serializedTextBox.value = serializedString;
+            var op = getViewController().originPoint;
+            var ap = getViewController().anchorPoint;
+            serializedTextBox.value = serializedString + "[" + op.getX() + "," + op.getY() + "," + ap.getX() + "," + ap.getY() + "]";
 //            for (var i = 0; i < this.points.length; i++) {
 //                this.points[i].redraw();
 //            }
@@ -146,13 +155,18 @@
             deserializeLinesData();
         }
         function deserializeLinesData() {
-            getViewController().originPoint.setXY(0,0);
+            getViewController().originPoint.setXY(0, 0);
             this.imageObj = new Image();
             document.getElementById("loadFile").value = "";
             while (this.lines.length > 0) {
                 removeLine();
             }
             var serializedData = document.getElementById("serializedLines").value;
+            if (serializedData.indexOf("[") > -1) {
+                var op_ap = serializedData.split("[")[1].split("]")[0].split(",");
+                getViewController().originPoint.setXY(parseInt(op_ap[0]), parseInt(op_ap[1]));
+                getViewController().anchorPoint.setXY(parseInt(op_ap[2]), parseInt(op_ap[3]));
+            }
             var linesData = serializedData.split("|");
             for (var i = 0; i < linesData.length - 1; i++) {
                 var lineData = linesData[i];
@@ -198,21 +212,19 @@
             var p4y = parseInt(document.getElementById("p4y").value);
             var dx = getViewController().originActivity.checked ? getViewController().originPoint.getX() : 0;
             var dy = getViewController().originActivity.checked ? getViewController().originPoint.getY() : 0;
+            var ax = getViewController().anchorPoint.getX();
+            var ay = getViewController().anchorPoint.getY();
 
-            document.getElementById("coefficients").innerHTML = "p3x = p1.x-(p1.x-p2.x)*" + ((p1x - p3x) / (p1x - p2x)) + "<br><br>" +
-                    "p3y = p1.y-(p1.y-p2.y)*" + ((p1y - p3y) / (p1y - p2y)) + "<br><br>" +
-                    "p4x = p1.x-(p1.x-p2.x)*" + ((p1x - p4x) / (p1x - p2x)) + "<br><br>" +
-                    "p4y = p1.y-(p1.y-p2.y)*" + ((p1y - p4y) / (p1y - p2y));
+            var allPoints = "line_N\nP1\nP2 !!!M P1 C P3 P4 P2\nP3\nP4";
+            for (var i = 0; i < this.lines.length; i++) {
+                allPoints += "\nline_" + i + "\n"
+                        + (p1x) + "\t" + (p1y) + "\t| " + ((p1x) / (ax - dx)).toFixed(2) + "\t" + ((p1y) / (ay - dy)).toFixed(2) + "\n"
+                        + (p2x) + "\t" + (p2y) + "\t| " + ((p2x) / (ax - dx)).toFixed(2) + "\t" + ((p2y) / (ay - dy)).toFixed(2) + "\n"
+                        + (p3x) + "\t" + (p3y) + "\t| " + ((p3x) / (ax - dx)).toFixed(2) + "\t" + ((p3y) / (ay - dy)).toFixed(2) + "\n"
+                        + (p4x) + "\t" + (p4y) + "\t| " + ((p4x) / (ax - dx)).toFixed(2) + "\t" + ((p4y) / (ay - dy)).toFixed(2);
+            }
 
-            document.getElementById("coefficients").innerHTML += "\<br\>============\<br\>p3x = p1.x*" + ((p3x - dx) / (p1x - dx)) + "<br><br>" +
-                    "p3y = p1.y*" + ((p3y - dy) / (p1y - dy)) + "<br><br>" +
-                    "p4x = p1.x*" + ((p4x - dx) / (p1x - dx)) + "<br><br>" +
-                    "p4y = p1.y*" + ((p4y - dy) / (p1y - dy));
-
-            document.getElementById("coefficients").innerHTML += "\<br\>============\<br\>p3x = p2.x*" + ((p3x - dx) / (p2x - dx)) + "<br><br>" +
-                    "p3y = p2.y*" + ((p3y - dy) / (p2y - dy)) + "<br><br>" +
-                    "p4x = p2.x*" + ((p4x - dx) / (p2x - dx)) + "<br><br>" +
-                    "p4y = p2.y*" + ((p4y - dy) / (p2y - dy));
+            document.getElementById("coefficients").value = allPoints;
         }
         function changeLineColor() {
             getViewController().getActiveLine().setColor(document.getElementById("lineColor").value);
@@ -278,7 +290,7 @@
                 var img = this.imageObj;
                 fr.onload = function () {
                     img.src = fr.result;
-                }
+                };
                 fr.readAsDataURL(files[0]);
             }
         }
@@ -379,19 +391,25 @@
             </table>
             <br><br>
             Origin point:<br>
-            <label for="originX">X:</label><input type="number" id="originX" value="0" style="width: 70px; height: 20px;"><br>
-            <label for="originY">Y:</label><input type="number" id="originY" value="0" style="width: 70px; height: 20px;"><br>
-            <label for="originActive">Active:</label><input type="checkbox" id="originActive" onchange="getViewController().updateView()">
+            <label for="originX">X:</label><input type="number" id="originX" value="0"
+                                                  style="width: 70px; height: 20px;"><br>
+            <label for="originY">Y:</label><input type="number" id="originY" value="0"
+                                                  style="width: 70px; height: 20px;"><br>
+            <label for="originActive">Active:</label><input type="checkbox" id="originActive"
+                                                            onchange="getViewController().updateView()">
             <br><br>
+            <label>Anchor Point:</label><br>
+            <label for="anchorX">X:</label><input type="number" id="anchorX" value="10"
+                                                  style="width: 50px; height: 20px;">&nbsp;
+            <label for="anchorY">Y:</label><input type="number" id="anchorY" value="1"
+                                                  style="width: 50px; height: 20px;"><br>
             <br>
             <input type="button" value="ApplyCoords" style="width: 170px;" onclick="applyCoords()"><br>
-            <br>
-            <br>
             <br>
             <input type="button" value="Coefficients" style="width: 170px;" onclick="coefficients()"><br>
         </td>
         <td>
-            <p style="font-size: 12px;" id="coefficients"></p>
+            <textarea id="coefficients" rows="30" cols="40"></textarea>
         </td>
     </tr>
 </table>
