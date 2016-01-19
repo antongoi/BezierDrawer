@@ -70,8 +70,8 @@ var ControlPoint = Class.extend({
     checkHoverStatus: function (event) {
         //this.clear();
         globalClear();
-        var ex = event.clientX - this.canvasRect.left;
-        var ey = event.clientY - this.canvasRect.top;
+        var ex = event.clientX - this.canvasRect.left + document.body.scrollLeft + document.documentElement.scrollLeft;
+        var ey = event.clientY - this.canvasRect.top + document.body.scrollTop + document.documentElement.scrollTop;
         if (this.inmove) {
             this.setXY(ex, ey);
         }
@@ -85,8 +85,8 @@ var ControlPoint = Class.extend({
     },
 
     checkPressStatus: function (event) {
-        var ex = event.clientX - this.canvasRect.left;
-        var ey = event.clientY - this.canvasRect.top;
+        var ex = event.clientX - this.canvasRect.left + document.body.scrollLeft + document.documentElement.scrollLeft;
+        var ey = event.clientY - this.canvasRect.top + document.body.scrollTop + document.documentElement.scrollTop;
         if ((ex > this.x - 5) && (ex < this.x + 5) && (ey > this.y - 5) && (ey < this.y + 5)) {
             this.setInmove(true);
             this.redraw();
