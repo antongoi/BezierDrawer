@@ -115,7 +115,9 @@
         }
         function globalRepaint() {
             var ctx = document.getElementById('myCanvas').getContext('2d');
-            ctx.drawImage(this.imageObj, 0, 0);
+            if (this.imageObj != null && this.imageObj.src != "") {
+                ctx.drawImage(this.imageObj, 0, 0);
+            }
             var serializedTextBox = document.getElementById("serializedLines");
             var serializedString = "";
             document.getElementById("lineColorsHelp").innerHTML = "";
